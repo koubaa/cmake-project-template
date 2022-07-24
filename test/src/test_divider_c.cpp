@@ -1,55 +1,33 @@
 #include "division.h"
 
-#include "gtest/gtest.h"
+#define TEST_NO_MAIN
+#include "acutest.h"
 
 namespace {
-  typedef std::vector<int64_t> VI;
-  class DividerTestC : public ::testing::Test {
+  static void test_divide(const int64_t numerator, const int64_t denominator, const int64_t result, const int64_t remainder) {
+    int64_t actual_remainder, actual_result;
 
-  protected:
-    VI numerators   {5, 9, 17, 933345453464353416L};
-    VI denominators {2, 3, 19, 978737423423423499L};
-    VI divisions    {2, 3, 0, 0};
-    VI remainders   {1, 0, 17, 933345453464353416};
-
-    virtual void SetUp() {};
-
-    virtual void TearDown() {};
-
-    virtual void verify(int index) {
-      int64_t remainder, result;
-
-      lib_clear_error();
-      lib_divide(numerators.at(index), denominators.at(index), &remainder, &result);
-      EXPECT_EQ(lib_get_error(), 0);
-      EXPECT_EQ(remainder, remainders.at(index));
-      EXPECT_EQ(result, divisions.at(index));
-    }
-  };
+    lib_clear_error();
+    lib_divide(numerator, denominator, &actual_remainder, &actual_result);
+    TEST_CHECK(lib_get_error() == 0);
+    TEST_CHECK(remainder == actual_remainder);
+    TEST_CHECK(result == actual_result);
+  }
 }
 
-TEST_F(DividerTestC, 5_DivideBy_2) {
-  verify(0);
+void test_c_standard(void) {
+  test_divide(5, 2, 2, 1);
+  test_divide(9, 3, 3, 0);
+  test_divide(17, 19, 0, 17);
+  test_divide(933345453464353416L, 978737423423423499L, 0, 933345453464353416);
 }
 
-TEST_F(DividerTestC, 9_DivideBy_3) {
-  verify(1);
-}
-
-TEST_F(DividerTestC, 17_DivideBy_19) {
-  verify(2);
-}
-
-TEST_F(DividerTestC, Long_DivideBy_Long) {
-  verify(3);
-}
-
-TEST_F(DividerTestC, DivisionByZero) {
+void test_c_divide_by_zero(void) {
   lib_clear_error();
   int64_t remainder, result;
   lib_divide(1, 0, &remainder, &result);
-  EXPECT_EQ(lib_get_error(), 2);
+  TEST_CHECK(lib_get_error() == 2);
   const char* err = nullptr;
   lib_get_error_details(2, &err);
-  EXPECT_EQ(strcmp(err, "Division by zero is illegal"), 0);
+  TEST_CHECK(strcmp(err, "Division by zero is illegal") == 0);
 }
